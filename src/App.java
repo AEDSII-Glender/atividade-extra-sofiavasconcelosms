@@ -62,6 +62,7 @@ public class App {
 
             while (arquivo.hasNextLine()) {
                 String linha = arquivo.nextLine();
+
                 Musica musica = Musica.criarDoTexto(linha);
 
                 playlist.inserirFinal(musica);
@@ -72,11 +73,10 @@ public class App {
             System.out.printf("%d músicas carregadas com sucesso!\n", quantasMusicas);
 
         } catch (IOException e) {
-            System.err
-                    .println("Erro ao ler o arquivo de músicas. Verifique se 'musicas.txt' existe na raiz do projeto.");
+            System.err.println(
+                    " Erro ao ler o arquivo de músicas. Verifique se 'musicas.txt' existe na raiz do projeto.");
         } catch (Exception e) {
-            System.err.println("Erro ao processar dados do arquivo: " + e.getMessage());
-            System.err.println("Certifique-se que o método Musica.criarDoTexto(String) está correto.");
+            System.err.println(" Erro ao processar dados ou inserir estrutura: " + e.getMessage());
         }
     }
 
@@ -92,7 +92,7 @@ public class App {
         Double duracao = lerOpcao("Duração (em minutos, ex: 3.50):", Double.class);
 
         if (duracao == null) {
-            System.out.println("Duração inválida. Operação cancelada.");
+            System.out.println(" Duração inválida. Operação cancelada.");
             return;
         }
 
@@ -105,9 +105,37 @@ public class App {
 
             System.out.printf("Música '%s' adicionada e indexada (ID: %d).\n", titulo, novaMusica.getId());
         } catch (IllegalArgumentException e) {
-            System.out.println("Erro ao adicionar música: " + e.getMessage());
+            System.out.println(" Erro ao adicionar música: " + e.getMessage());
         } catch (Exception e) {
-            System.out.println("Erro ao indexar música: " + e.getMessage());
+            System.out.println(" Erro ao indexar música: " + e.getMessage());
+        }
+    }
+
+    private static void removerMusica() {
+        limparTela();
+        cabecalho();
+        System.out.println("--- REMOVER MÚSICA POR ID ---");
+
+        Integer id = lerOpcao("Digite o ID da música que deseja remover:");
+        if (id == null) {
+            System.out.println("ID inválido. Operação cancelada.");
+            return;
+        }
+
+        try {
+            Musica musicaParaRemover = indexadorPorId.pesquisar(id);
+
+            indexadorPorId.remover(id);
+            playlist.remover(musicaParaRemover);
+
+            quantasMusicas--;
+            System.out.printf("Música ID %d ('%s') removida da Playlist e do Índice.\n",
+                    id, musicaParaRemover.getTitulo());
+
+        } catch (NoSuchElementException e) {
+            System.out.println(" Música com ID " + id + " não encontrada no Índice.");
+        } catch (Exception e) {
+            System.out.println(" Erro ao remover música: " + e.getMessage());
         }
     }
 
@@ -130,7 +158,7 @@ public class App {
             case 2 -> comp = Comparator.comparing(Musica::getArtista);
             case 3 -> comp = Comparator.comparing(Musica::getDuracao);
             default -> {
-                System.out.println("Opção inválida.");
+                System.out.println(" Opção inválida.");
                 return;
             }
         }
@@ -143,21 +171,23 @@ public class App {
 
     private static void reproduzirEmOrdem() {
         if (playlist.vazia()) {
-            System.out.println("Playlist vazia.");
+            System.out.println(" Playlist vazia.");
             return;
         }
+
         Celula<Musica> atual = playlist.getPrimeiraMusica();
+
         historico.adicionarMusica(atual.getItem());
 
         Integer op;
         do {
             limparTela();
             cabecalho();
-            System.out.println(" Reproduzindo: " + atual.getItem());
+            System.out.println("Reproduzindo: " + atual.getItem());
 
-            System.out.println("\n1 - Próxima");
-            System.out.println("2 - Anterior");
-            System.out.println("0 - Parar");
+            System.out.println("\n1 - Próxima Música");
+            System.out.println("2 - Música Anterior");
+            System.out.println("0 - Parar Reprodução");
 
             op = lerOpcao("Escolha:");
             if (op == null)
@@ -186,7 +216,6 @@ public class App {
                 } else {
                     System.out.println("\nVocê já está no início da playlist.");
                     pausa();
-                    // Garante que 'atual' aponta para o início
                     atual = playlist.getPrimeiraMusica();
                 }
             }
@@ -203,35 +232,38 @@ public class App {
 
         try {
             Musica m = indexadorPorId.pesquisar(id);
-            System.out.println(" Reproduzindo: " + m);
+            System.out.println("Reproduzindo: " + m);
             historico.adicionarMusica(m);
 
             System.out.println("Comparações (ABB): " + indexadorPorId.getComparacoes());
             System.out.println("Tempo: " + indexadorPorId.getTempo() + " ms");
 
         } catch (NoSuchElementException e) {
-            System.out.println("Música não encontrada no índice (ID: " + id + ").");
+            System.out.println(" Música não encontrada no índice (ID: " + id + ").");
         }
     }
 
     private static void voltarReproducao() {
         limparTela();
         cabecalho();
+        System.out.println("--- VOLTAR REPRODUÇÃO (HISTÓRICO) ---");
         try {
             historico.voltarReproducao();
 
             Musica anterior = historico.voltarReproducao();
+
             historico.adicionarMusica(anterior);
 
             System.out.println("Voltando para: " + anterior);
         } catch (EmptyStackException e) {
-            System.out.println("Histórico de reprodução vazio ou insuficiente para voltar uma música.");
+            System.out.println(" Histórico de reprodução vazio ou insuficiente para voltar uma música.");
         }
     }
 
     private static void exibirHistorico() {
         limparTela();
         cabecalho();
+        System.out.println("--- HISTÓRICO DE REPRODUÇÃO ---");
         System.out.println(historico.exibirHistorico());
     }
 
@@ -244,14 +276,17 @@ public class App {
     static int menu() {
         limparTela();
         cabecalho();
-        System.out.println("\n1 - Exibir Playlist");
-        System.out.println("2 - Ordenar Playlist");
+        System.out.println("\n--- MENU PLAYLIST ---\n");
+        System.out.println("1 - Exibir Playlist");
+        System.out.println("2 - Ordenar Playlist (QuickSort)");
         System.out.println("3 - Reproduzir em Ordem (Navegação)");
         System.out.println("4 - Reproduzir por ID (Busca ABB)");
         System.out.println("5 - Voltar Reprodução (Histórico)");
         System.out.println("6 - Exibir Histórico Completo");
         System.out.println("7 - Adicionar Música Manualmente");
+        System.out.println("8 - Remover Música por ID");
         System.out.println("0 - Sair");
+        System.out.println("---------------------");
 
         Integer op = lerOpcao("Opção:");
         return (op == null) ? -1 : op;
@@ -263,6 +298,7 @@ public class App {
         historico = new Historico();
 
         carregarMusicas();
+        pausa();
 
         int op;
         do {
@@ -275,9 +311,10 @@ public class App {
                 case 5 -> voltarReproducao();
                 case 6 -> exibirHistorico();
                 case 7 -> adicionarMusicaManualmente();
+                case 8 -> removerMusica();
                 case 0 -> System.out.println("Encerrando...");
                 default -> {
-                    System.out.println("Opção inválida!");
+                    System.out.println(" Opção inválida!");
                 }
             }
             if (op != 0)
