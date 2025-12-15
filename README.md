@@ -3,4 +3,4 @@ Atividade Extra de AEDs II. Esta atividade não vale de forma isolada, apenas co
 
 ## Aluno 
 
-* Nome completo do aluno 1
+* Sofia Vasconcelos Moreira e Silva
